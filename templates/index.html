@@ -1,0 +1,183 @@
+<!-- HTMLの基本設定 -->
+<!DOCTYPE html>
+<!-- フォント設定 -->
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>求人ボックススクレイピング</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* 全体スタイル調整 */
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 60px auto;
+            background-color: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+
+        h5 {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #34495e;
+            margin-top: 20px;
+            margin-bottom: 5px;
+        }
+
+        .section-subtitle {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .progress-bar {
+            display: none;
+            width: 100%;
+            background-color: #ddd;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-bar-fill {
+            height: 20px;
+            width: 0%;
+            background-color: #4CAF50;
+            transition: width 0.4s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>求人ボックス:スクレイピング</h1>
+        <h5>下記に条件を入力し、「スクレイピング実行ボタンを押してください」</h5>
+
+        <div class="section-title">スクレイピング項目:</div>
+        <div class="section-subtitle">求人タイトル / 企業名 / 所在地 / 給与 / 雇用形態</div>
+
+        <!-- フォーム部分 -->
+        <form id="scraping-form">
+            <label for="keyword">キーワード:</label>
+            <input type="text" id="keyword" name="keyword" placeholder="例: プログラマー, 事務, 飲食など" required>
+
+            <label for="location">勤務地:</label>
+            <input type="text" id="location" name="location" placeholder="例: 東京都, 大阪市, 福岡県など" required>
+
+            <label for="employment_type">雇用形態:</label>
+            <select id="employment_type" name="employment_type" required>
+                <option value="1">正社員</option>
+                <option value="2">アルバイト・パート</option>
+                <option value="3">派遣社員</option>
+                <option value="4">契約・臨時・期間社員</option>
+                <option value="5">業務委託</option>
+                <option value="6">新卒・インターン</option>
+            </select>
+
+            <button type="submit">スクレイピング実行</button>
+
+            <div class="progress-bar" id="progress-bar">
+                <div class="progress-bar-fill" id="progress-bar-fill"></div>
+            </div>
+        </form>
+    </div>
+         <!-- フォーム送信時の処理 -->
+    <script>
+        const form = document.getElementById('scraping-form');
+        const progressBar = document.getElementById('progress-bar');
+        const progressFill = document.getElementById('progress-bar-fill');
+
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            // プログレスバーを表示
+            progressBar.style.display = 'block';
+            progressFill.style.width = '0%';
+
+            // 値の取得
+            const keyword = document.getElementById('keyword').value;
+            const location = document.getElementById('location').value;
+            const employment = document.getElementById('employment_type').value;
+
+            // プログレスバーの進行
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 10;
+                if (progress <= 90) {
+                    progressFill.style.width = progress + "%";
+                }
+            }, 300);
+
+            // スクレイピング実行
+            const params = new URLSearchParams({
+                keyword,
+                location,
+                employment_type: employment
+            });
+            const res = await fetch(`/run-scraper?${params.toString()}`);
+            
+            clearInterval(interval);
+            progressFill.style.width = "100%";
+
+            // 完了アラート
+            alert("スクレイピングが完了しました");
+
+            // ダウンロードページにリダイレクト
+            window.location.href = "/download";
+        });
+    </script>
+</body>
+</html>

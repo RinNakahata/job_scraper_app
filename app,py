@@ -1,0 +1,42 @@
+from flask import Flask, render_template, request, redirect, url_for, send_file
+import asyncio
+from scraper.job_scraper import scrape_main  # スクレイピング処理本体をインポート
+import os
+
+app = Flask(__name__)  # Flaskアプリケーションのインスタンスを作成
+
+
+@app.route('/')
+def index():
+    # トップページにアクセスした際に index.html を表示
+    return render_template('index.html')
+
+
+@app.route('/run-scraper', methods=['GET'])
+def run_scraper():
+    # フォームから送られたキーワード、勤務地、雇用形態を取得
+    keyword = request.args.get("keyword", "")
+    location = request.args.get("location", "")
+    employment_type = request.args.get("employment_type", "")
+
+    # 非同期関数 scrape_main を同期的に実行（Playwright 使用）
+    asyncio.run(scrape_main(keyword, location, employment_type))
+
+    # スクレイピング完了後にダウンロードページへリダイレクト
+    return redirect(url_for('download'))
+
+
+@app.route('/download')
+def download():
+    file_path = 'output/求人情報一覧.xlsx'  # ダウンロードするExcelファイルのパス
+
+    # ファイルが存在すればユーザーに送信、それ以外はエラー表示
+    if os.path.exists(file_path):
+        return send_file(file_path, as_attachment=True)
+    else:
+        return "ファイルが存在しません。先にスクレイピングを実行してください。", 404
+
+
+if __name__ == "__main__":
+    # Flask開発用サーバーの起動
+    app.run(debug=True)
